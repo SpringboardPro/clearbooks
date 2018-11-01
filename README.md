@@ -6,7 +6,12 @@ Python library for interacting with ClearBooks.
 
 Use Python 3.6+.
 
-Requires the `reqests` package.  Use `pip install requests` to get it.
+Required packages:
+
+* `pandas`
+* `reqests`
+
+Use `pip install` to get the required packages.
 
 Copy `clearbooks.py` to your working directory, or clone using `git` then install using `pip`.
 
