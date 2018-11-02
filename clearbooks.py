@@ -66,6 +66,8 @@ class Session:
 
         Perhaps the ClearBooks server times-out internally.
         A technique that seems to work is to get one year at a time.
+
+        Add columns for Quarter and Working Days (sum of Days, Hours, Minutes).
         """
         dataframes: List[pd.DataFrame] = []
 
@@ -79,10 +81,19 @@ class Session:
 
         timesheets = pd.concat(dataframes)
 
+        # Change leading underscores to periods because matplotlib does not
+        # plot variables with leading underscores
+        timesheets.replace('^_', '.', regex=True, inplace=True)
+
         # Add column for Working Days booked
         timesheets['Working Days'] = timesheets['Days'] + \
             timesheets['Hours'] / HOURS_PER_DAY + \
             timesheets['Minutes'] / (HOURS_PER_DAY * 60)
+
+        # Categorise each entry into its quarter.
+        # Note that the quarter is financial (Q1 is Apr - Jun inclusive)
+        # The year is the financial year ENDING so 2016Q1 means Apr - Jun 2015
+        timesheets['Quarter'] = pd.PeriodIndex(timesheets['Datetime'], freq='Q-MAR')
 
         return timesheets
 
@@ -113,4 +124,4 @@ def _get_timesheet(session: requests.Session,
     response = session.get(TIMESHEET_URL, params=params, timeout=TIMEOUT)
     response.raise_for_status()
 
-    return pd.read_csv(StringIO(response.text))
+    return pd.read_csv(StringIO(response.text), parse_dates={'Datetime': ['Date', 'Time']})

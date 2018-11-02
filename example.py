@@ -15,6 +15,10 @@ def main():
     print(timesheets.head())
     print()
 
+    # Print the data types
+    print(timesheets.dtypes)
+    print()
+
     # Print the total amount of time booked by employee
     print(timesheets.groupby('Employee')['Working Days'].sum().sort_values())
 
