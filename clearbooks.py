@@ -120,8 +120,13 @@ def _get_timesheet(session: requests.Session,
     # otherwise it throws a HTTP 500 Server Error!
     params['filter-submit'] = 'Find'
 
-    logger.debug('Requesting timesheets from {} to {}'.format(from_, to))
+    logger.debug(f'Requesting timesheets from {from_} to {to}')
     response = session.get(TIMESHEET_URL, params=params, timeout=TIMEOUT)
     response.raise_for_status()
 
-    return pd.read_csv(StringIO(response.text), parse_dates={'Datetime': ['Date', 'Time']})
+    if response.text:
+        return pd.read_csv(StringIO(response.text), parse_dates={'Datetime': ['Date', 'Time']})
+
+    else:
+        logger.warning(f'No timesheets found between {from_} and {to}')
+        return pd.DataFrame()
