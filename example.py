@@ -13,6 +13,7 @@ def main():
 
     # Print the top few rows of timesheet data
     print(timesheets.head())
+    print()
 
     # Print the total amount of time booked by employee
     print(timesheets.groupby('Employee')['Working Days'].sum().sort_values())

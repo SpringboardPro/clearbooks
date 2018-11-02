@@ -18,10 +18,11 @@ DATE_FORMAT = '%d/%m/%Y'
 HOURS_PER_DAY = 8  # hours per working day
 CB_START_DATE = date(2013, 1, 1)
 ONE_YEAR = timedelta(days=365)
-LOGIN_URL = 'https://secure.clearbooks.co.uk/account/action/login/'
-LOGIN_FORM = 'https://secure.clearbooks.co.uk/account/action/login/cb'
-TIMESHEET_URL = 'https://secure.clearbooks.co.uk/springboardproltd/accounting/timetracking/view/'
-HOMEPAGE = 'https://secure.clearbooks.co.uk/springboardproltd/accounting/home/dashboard'
+CB_DOMAIN = 'https://secure.clearbooks.co.uk/'
+LOGIN_URL = CB_DOMAIN + 'account/action/login/'
+LOGIN_FORM = CB_DOMAIN + 'account/action/login/cb'
+TIMESHEET_URL = CB_DOMAIN + 'springboardproltd/accounting/timetracking/view/'
+HOMEPAGE = CB_DOMAIN + 'springboardproltd/accounting/home/dashboard'
 
 
 class Session:
@@ -43,7 +44,7 @@ class Session:
         self._session = requests.Session().__enter__()
 
         # Log in to ClearBooks
-        response = self._session.post(LOGIN_URL, data=post_data, timeout=TIMEOUT)
+        response = self._session.post(LOGIN_FORM, data=post_data, timeout=TIMEOUT)
         response.raise_for_status()
 
         if response.url == LOGIN_URL:
@@ -54,7 +55,7 @@ class Session:
         return self
 
     def __exit__(self, *args, **kwargs):
-        self._session.__exit__(*args, **kwargs)
+        return self._session.__exit__(*args, **kwargs)
 
     def get_timesheets(self,
                        from_: date=CB_START_DATE,
