@@ -8,19 +8,18 @@ import clearbooks
 def main():
     one_year_ago = date.today() - timedelta(days=365)
 
-    with clearbooks.Session() as session:
-        timesheets = session.get_timesheets(from_=one_year_ago)
+    times = clearbooks.get_timesheets(from_=one_year_ago)
 
     # Print the top few rows of timesheet data
-    print(timesheets.head())
+    print(times.head())
     print()
 
     # Print the data types
-    print(timesheets.dtypes)
+    print(times.dtypes)
     print()
 
     # Print the total amount of time booked by employee
-    print(timesheets.groupby('Employee')['Working Days'].sum().sort_values())
+    print(times.groupby('Employee')['Working Days'].sum().sort_values())
 
 
 if __name__ == '__main__':

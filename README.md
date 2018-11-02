@@ -22,7 +22,7 @@ Python library for interacting with ClearBooks.
    to the username (normally the email address) and password of the account used to log
    in to ClearBooks.
 
-2. See `example.py` for an example of how to use `clearbooks.py`
+2. See `example1.py` for an example of how to use `clearbooks.py`
 
 ## Development
 

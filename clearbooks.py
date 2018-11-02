@@ -4,12 +4,13 @@ from datetime import date, timedelta
 from io import StringIO
 import logging
 import os
+import sys
 from typing import List
 
 import pandas as pd
 import requests
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 TIMEOUT = 20  # seconds
 DATE_FORMAT = '%d/%m/%Y'
@@ -27,34 +28,38 @@ HOMEPAGE = CB_DOMAIN + 'springboardproltd/accounting/home/dashboard'
 
 class Session:
 
-    def __enter__(self, username: str=None, password: str=None):
+    def __enter__(self):
         logger = logging.getLogger('clearbooks.Session.__enter__')
 
         post_data = {}
 
         try:
-            post_data['email'] = username or os.environ['CB_USER']
-            post_data['password'] = password or os.environ['CB_PASSWORD']
+            post_data['email'] = os.environ['CB_USER']
+            post_data['password'] = os.environ['CB_PASSWORD']
 
         except KeyError as ex:
             logger.error(f'Cannot log in. Please set the {ex} environment variable')
             raise
 
         # Start a HTTP session
-        self._session = requests.Session().__enter__()
+        try:
+            self._session = requests.Session().__enter__()
 
-        # Log in to ClearBooks
-        response = self._session.post(LOGIN_FORM, data=post_data, timeout=TIMEOUT)
-        response.raise_for_status()
+            # Log in to ClearBooks
+            response = self._session.post(LOGIN_FORM, data=post_data, timeout=TIMEOUT)
+            response.raise_for_status()
 
-        if response.url == LOGIN_URL:
-            msg = 'Incorrect username or password.'
-            logger.error(msg)
-            raise ValueError(msg)
+            if response.url == LOGIN_URL:
+                msg = 'Incorrect username or password.'
+                logger.error(msg)
+                raise ValueError(msg)
 
-        return self
+            return self
 
-    def __exit__(self, *args, **kwargs):
+        except Exception:
+            self.__exit__(*sys.exec_info())
+
+    def __exit__(self, *args, **kwargs) -> bool:
         return self._session.__exit__(*args, **kwargs)
 
     def get_timesheets(self,
@@ -96,6 +101,18 @@ class Session:
         timesheets['Quarter'] = pd.PeriodIndex(timesheets['Datetime'], freq='Q-MAR')
 
         return timesheets
+
+
+def get_timesheets(from_: date=CB_START_DATE,
+                   to: date=date.today(),
+                   step: timedelta=ONE_YEAR) -> pd.DataFrame:
+    """Convenience function to get timesheets.
+
+    If you want to download other data from ClearBooks on the same connection,
+    use the `clearbooks.Session` context manager.
+    """
+    with Session() as session:
+        return session.get_timesheets(from_, to, step)
 
 
 def _get_timesheet(session: requests.Session,
