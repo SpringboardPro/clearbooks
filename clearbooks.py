@@ -57,10 +57,12 @@ class Session:
             return self
 
         except Exception:
+            # If there is an error logging in, exit the log-in
             self.__exit__(*sys.exec_info())
 
-    def __exit__(self, *args, **kwargs) -> bool:
-        return self._session.__exit__(*args, **kwargs)
+    def __exit__(self, exc_type, exc_value, traceback_) -> bool:
+        # Exit the HTTP session
+        return self._session.__exit__(exc_type, exc_value, traceback_)
 
     def get_timesheets(self,
                        from_: date=CB_START_DATE,
