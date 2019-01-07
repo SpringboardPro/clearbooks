@@ -65,9 +65,9 @@ class Session:
         return self._session.__exit__(exc_type, exc_value, traceback_)
 
     def get_timesheets(self,
-                       from_: date=CB_START_DATE,
-                       to: date=date.today(),
-                       step: timedelta=ONE_YEAR) -> pd.DataFrame:
+                       from_: date = CB_START_DATE,
+                       to: date = date.today(),
+                       step: timedelta = ONE_YEAR) -> pd.DataFrame:
         """Download timesheets in chunks because there is a bug in ClearBooks
         where requests for large amounts of data get no respone.
 
@@ -105,9 +105,9 @@ class Session:
         return timesheets
 
 
-def get_timesheets(from_: date=CB_START_DATE,
-                   to: date=date.today(),
-                   step: timedelta=ONE_YEAR) -> pd.DataFrame:
+def get_timesheets(from_: date = CB_START_DATE,
+                   to: date = date.today(),
+                   step: timedelta = ONE_YEAR) -> pd.DataFrame:
     """Convenience function to get timesheets.
 
     If you want to download other data from ClearBooks on the same connection,
@@ -119,7 +119,7 @@ def get_timesheets(from_: date=CB_START_DATE,
 
 def _get_timesheet(session: requests.Session,
                    from_: date,
-                   to: date=date.today()) -> pd.DataFrame:
+                   to: date = date.today()) -> pd.DataFrame:
     """Download one CSV timesheet as a DataFrame.
 
     ClearBooks throws a HTTP 500 Server Error if a large amount of data is
