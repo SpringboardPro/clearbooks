@@ -10,14 +10,14 @@ from typing import List
 import pandas as pd
 import requests
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 TIMEOUT = 20  # seconds
 DATE_FORMAT = '%d/%m/%Y'
 """Date format DD/MM/YYYY accepted by ClearBooks URLs"""
 
 HOURS_PER_DAY = 8  # hours per working day
-CB_START_DATE = date(2013, 1, 1)
+CB_START_DATE = date(2014, 1, 1)
 ONE_YEAR = timedelta(days=365)
 CB_DOMAIN = 'https://secure.clearbooks.co.uk/'
 LOGIN_URL = CB_DOMAIN + 'account/action/login/'
