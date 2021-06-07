@@ -19,7 +19,7 @@ def main():
     print()
 
     # Print the total amount of time booked by employee
-    print(times.groupby('Employee')['Working Days'].sum().sort_values())
+    print(times.groupby('Employee')['Working_Days'].sum().sort_values())
 
 
 if __name__ == '__main__':

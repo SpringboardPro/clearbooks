@@ -23,7 +23,7 @@ def main():
     print()
 
     # Print the sum of days booked by employee, by quarter
-    print(times.pivot_table(values='Working Days',
+    print(times.pivot_table(values='Working_Days',
                             index='Employee',
                             columns='Quarter',
                             aggfunc='sum'))

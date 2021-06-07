@@ -10,7 +10,8 @@ from typing import List
 import pandas as pd
 import requests
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
+__all__ = ['Session', 'get_timesheets']
 
 TIMEOUT = 20  # seconds
 DATE_FORMAT = '%d/%m/%Y'
@@ -93,7 +94,7 @@ class Session:
         timesheets.replace('^_', '.', regex=True, inplace=True)
 
         # Add column for Working Days booked
-        timesheets['Working Days'] = timesheets['Days'] + \
+        timesheets['Working_Days'] = timesheets['Days'] + \
             timesheets['Hours'] / HOURS_PER_DAY + \
             timesheets['Minutes'] / (HOURS_PER_DAY * 60)
 
