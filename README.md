@@ -33,5 +33,5 @@ Python library for interacting with ClearBooks.
 
 - [x] time sheets
 - [x] Purchase Orders
-- [] Bills - paid bills on a project
-- [] Invoices – what we have invoiced
+- [ ] Bills - paid bills on a project
+- [ ] Invoices – what we have invoiced
