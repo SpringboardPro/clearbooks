@@ -27,6 +27,19 @@ REPORT_URL = CB_DOMAIN + 'springboardproltd/accounting/reports/export-csv/'
 TIMESHEET_URL = CB_DOMAIN + 'springboardproltd/accounting/timetracking/view/'
 HOMEPAGE = CB_DOMAIN + 'springboardproltd/accounting/home/dashboard'
 
+PO_COL_NAMES = ['clearbooks_id',
+                'prefix',
+                'accounting_date',
+                'reference',
+                'invoice_date',
+                'description',
+                'company_name',
+                'net',
+                'vat',
+                'gross',
+                'status',
+                'project_name']
+
 
 class Session:
 
@@ -76,8 +89,12 @@ class Session:
 def get_purchase_orders(from_: date = CB_START_DATE,
                         to: date = None) -> pd.DataFrame:
     """Return Purchase Orders as pandas.DataFrame."""
+    logger = logging.getLogger('clearbooks.get_purchase_orders')
+
     if to is None:
         to = date.today()
+
+    _check_date_order(from_, to)
 
     params = {'report_type': 'POS'}
     params['q_from'] = from_.strftime(DATE_FORMAT)
@@ -87,7 +104,13 @@ def get_purchase_orders(from_: date = CB_START_DATE,
         response = session.post(REPORT_URL, params, timeout=TIMEOUT)
 
     response.raise_for_status()
-    return pd.read_csv(StringIO(response.text), parse_dates=[2, 4])
+
+    if response.text:
+        return pd.read_csv(StringIO(response.text), parse_dates=[2, 4])
+
+    else:
+        logger.info(f'No POs found between {from_} and {to}')
+        return pd.DataFrame(columns=PO_COL_NAMES)
 
 
 def get_timesheets(from_: date = CB_START_DATE,
@@ -103,6 +126,8 @@ def get_timesheets(from_: date = CB_START_DATE,
     """
     if to is None:
         to = date.today()
+    
+    _check_date_order(from_, to)
 
     dataframes: List[pd.DataFrame] = []
 
@@ -140,7 +165,7 @@ def _get_timesheet(session: requests.Session,
     """Download one CSV timesheet as a DataFrame.
 
     ClearBooks throws a HTTP 500 Server Error if a large amount of data is
-    requested. Use Session.get_timesheets() instead.
+    requested so client code should use get_timesheets().
     """
 
     logger = logging.getLogger('_get_timesheet')
@@ -165,8 +190,22 @@ def _get_timesheet(session: requests.Session,
     response.raise_for_status()
 
     if response.text:
-        return pd.read_csv(StringIO(response.text), parse_dates={'Datetime': ['Date', 'Time']})
+        return pd.read_csv(StringIO(response.text),
+                           parse_dates={'Datetime': ['Date', 'Time']})
 
     else:
-        logger.warning(f'No timesheets found between {from_} and {to}')
+        logger.info(f'No timesheets found between {from_} and {to}')
         return pd.DataFrame()
+
+
+def _check_date_order(from_, to) -> bool:
+    """Check that from_ is not later than to.
+
+    Returns: True if from_ is not later than to
+
+    Raises: Value error if from_is later than to
+    """
+    if from_ > to:
+        raise ValueError(f'"to" ({to}) cannot be before "from" ({from_})')
+
+    return True
