@@ -19,7 +19,7 @@ ClearBooks administrator if you have any problems.
    Python 3.6+ on its own and use `pip install` to install the following required packages:
 
    * `pandas`
-   * `reqests`
+   * `requests`
 
 3. Either:
    1. Copy `clearbooks.py` to your working directory, OR

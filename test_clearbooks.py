@@ -37,7 +37,6 @@ class TestGetPurchaseOrders(unittest.TestCase):
         pos = clearbooks.get_purchase_orders(from_, to)
         self.assertEqual(pos.shape, (129, 12))
 
-
     @unittest.skipIf(SKIP_SLOW_TESTS, 'Slow test')
     def test_get_none(self):
         from_ = date(2020, 12, 25)

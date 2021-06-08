@@ -10,8 +10,8 @@ from typing import List
 import pandas as pd
 import requests
 
-__version__ = '0.0.6'
-__all__ = ['Session', 'get_purchase_orders', 'get_timesheets']
+__version__ = '0.0.7'
+__all__ = ['Session', 'get_bills', 'get_purchase_orders', 'get_timesheets']
 
 TIMEOUT = 20  # seconds
 DATE_FORMAT = '%d/%m/%Y'
@@ -100,7 +100,7 @@ def get_bills(from_: date = CB_START_DATE,
     with Session() as session:
         response = session.post(REPORT_URL, params, timeout=TIMEOUT)
 
-    response.raise_for_status() 
+    response.raise_for_status()
 
     if response.text:
         return pd.read_csv(StringIO(response.text))
