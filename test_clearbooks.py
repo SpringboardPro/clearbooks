@@ -10,14 +10,16 @@ import clearbooks
 SKIP_SLOW_TESTS = False
 
 
-class TestBills(unittest.TestCase):
+class TestGetBills(unittest.TestCase):
 
+    @unittest.skipIf(SKIP_SLOW_TESTS, 'Slow test')
     def test_bills(self):
         from_ = date(2021, 4, 1)
         to = date(2021, 4, 30)
         bills = clearbooks.get_bills(from_, to)
         self.assertEqual(bills.shape, (285, 24))
 
+    @unittest.skipIf(SKIP_SLOW_TESTS, 'Slow test')
     def test_no_bills(self):
         from_ = date(2020, 12, 26)
         to = date(2020, 12, 26)
@@ -26,6 +28,26 @@ class TestBills(unittest.TestCase):
         expected = pd.DataFrame(columns=clearbooks.BILL_COL_NAMES)
 
         pd.testing.assert_frame_equal(bills, expected)
+
+
+class TestGetInvoices(unittest.TestCase):
+
+    @unittest.skipIf(SKIP_SLOW_TESTS, 'Slow test')
+    def test_invoices(self):
+        from_ = date(2021, 4, 1)
+        to = date(2021, 4, 30)
+        bills = clearbooks.get_invoices(from_, to)
+        self.assertEqual(bills.shape, (15, 22))
+
+    @unittest.skipIf(SKIP_SLOW_TESTS, 'Slow test')
+    def test_no_invoices(self):
+        from_ = date(2020, 12, 26)
+        to = date(2020, 12, 26)
+        invoices = clearbooks.get_invoices(from_, to)
+
+        expected = pd.DataFrame(columns=clearbooks.INVOICE_COL_NAMES)
+
+        pd.testing.assert_frame_equal(invoices, expected)
 
 
 class TestGetPurchaseOrders(unittest.TestCase):

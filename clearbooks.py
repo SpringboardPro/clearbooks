@@ -11,7 +11,7 @@ import pandas as pd
 import requests
 
 __version__ = '0.0.7'
-__all__ = ['Session', 'get_bills', 'get_purchase_orders', 'get_timesheets']
+__all__ = ['Session', 'get_bills', 'get_invoices', 'get_purchase_orders', 'get_timesheets']
 
 TIMEOUT = 20  # seconds
 DATE_FORMAT = '%d/%m/%Y'
@@ -33,6 +33,12 @@ BILL_COL_NAMES = ['clearbooks_id', 'prefix', 'number', 'accounting_date', 'refer
                   'project_name', 'outstanding', 'mc_net', 'mc_vat', 'mc_gross',
                   'currency_id', 'formatted_invoice_number', 'amount_credited',
                   'currency_code']
+
+INVOICE_COL_NAMES = ['invoice_num', 'prefix', 'accounting_date', 'reference',
+                     'transaction_id', 'invoice_date', 'invoice_due', 'description',
+                     'company_name', 'net', 'vat', 'gross', 'status', 'project_name',
+                     'outstanding', 'mc_net', 'mc_vat', 'mc_gross', 'currency_id',
+                     'formatted_invoice_number', 'amount_credited', 'currency_code']
 
 PO_COL_NAMES = ['clearbooks_id', 'prefix', 'accounting_date', 'reference', 'invoice_date',
                 'description', 'company_name', 'net', 'vat', 'gross', 'status', 'project_name']
@@ -108,6 +114,33 @@ def get_bills(from_: date = CB_START_DATE,
     else:
         logger.info(f'No bills found between {from_} and {to}')
         return pd.DataFrame(columns=BILL_COL_NAMES)
+
+
+def get_invoices(from_: date = CB_START_DATE,
+                 to: date = None) -> pd.DataFrame:
+    """Return invoices as pandas.DataFrame."""
+    logger = logging.getLogger('clearbooks.get_invoices')
+
+    if to is None:
+        to = date.today()
+
+    _check_date_order(from_, to)
+
+    params = {'report_type': 'SALES'}
+    params['q_from'] = from_.strftime(DATE_FORMAT)
+    params['q_to'] = to.strftime(DATE_FORMAT)
+
+    with Session() as session:
+        response = session.post(REPORT_URL, params, timeout=TIMEOUT)
+
+    response.raise_for_status()
+
+    if response.text:
+        return pd.read_csv(StringIO(response.text), parse_dates=[2, 5, 6])
+
+    else:
+        logger.info(f'No invoices found between {from_} and {to}')
+        return pd.DataFrame(columns=INVOICE_COL_NAMES)
 
 
 def get_purchase_orders(from_: date = CB_START_DATE,

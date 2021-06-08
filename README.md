@@ -44,4 +44,4 @@ ClearBooks administrator if you have any problems.
 - [x] Timesheets
 - [x] Purchase Orders
 - [x] Bills - paid bills on a project
-- [ ] Invoices – what we have invoiced
+- [x] Invoices – what we have invoiced
