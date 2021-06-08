@@ -10,7 +10,7 @@ from typing import List
 import pandas as pd
 import requests
 
-__version__ = '0.0.7'
+__version__ = '0.1.0'
 __all__ = ['Session', 'get_bills', 'get_invoices', 'get_purchase_orders', 'get_timesheets']
 
 TIMEOUT = 20  # seconds
@@ -109,7 +109,7 @@ def get_bills(from_: date = CB_START_DATE,
     response.raise_for_status()
 
     if response.text:
-        return pd.read_csv(StringIO(response.text))
+        return pd.read_csv(StringIO(response.text), parse_dates=[3, 7, 8])
 
     else:
         logger.info(f'No bills found between {from_} and {to}')
