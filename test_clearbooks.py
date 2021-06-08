@@ -10,6 +10,24 @@ import clearbooks
 SKIP_SLOW_TESTS = False
 
 
+class TestBills(unittest.TestCase):
+
+    def test_bills(self):
+        from_ = date(2021, 4, 1)
+        to = date(2021, 4, 30)
+        bills = clearbooks.get_bills(from_, to)
+        self.assertEqual(bills.shape, (285, 24))
+
+    def test_no_bills(self):
+        from_ = date(2020, 12, 26)
+        to = date(2020, 12, 26)
+        bills = clearbooks.get_bills(from_, to)
+
+        expected = pd.DataFrame(columns=clearbooks.BILL_COL_NAMES)
+
+        pd.testing.assert_frame_equal(bills, expected)
+
+
 class TestGetPurchaseOrders(unittest.TestCase):
 
     @unittest.skipIf(SKIP_SLOW_TESTS, 'Slow test')
@@ -17,7 +35,7 @@ class TestGetPurchaseOrders(unittest.TestCase):
         from_ = date(2021, 4, 1)
         to = date(2021, 4, 30)
         pos = clearbooks.get_purchase_orders(from_, to)
-        self.assertEqual(pos.shape[-1], 12)
+        self.assertEqual(pos.shape, (129, 12))
 
 
     @unittest.skipIf(SKIP_SLOW_TESTS, 'Slow test')

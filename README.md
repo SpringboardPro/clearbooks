@@ -2,6 +2,13 @@
 
 Python library for interacting with ClearBooks.
 
+## Authorisation
+
+You will need some level of administrator permissions in ClearBooks for the
+functions to work.  For example, you cannot query other peoples' timesheets
+unless you have that permission in ClearBooks.  Contact your company's
+ClearBooks administrator if you have any problems.
+
 ## Installation
 
 1. Ideally, install the Anaconda Python distribution because it installs the required
@@ -14,7 +21,10 @@ Python library for interacting with ClearBooks.
    * `pandas`
    * `reqests`
 
-3. Copy `clearbooks.py` to your working directory, or clone using `git` then install using `pip`.
+3. Either:
+   1. Copy `clearbooks.py` to your working directory, OR
+   2. Install from the repository using `pip install https://github.com/blokeley/clearbooks` (untested) OR
+   3. Clone the repository using `git` then install from the local repo using `pip`.
 
 ## Use
 
@@ -31,7 +41,7 @@ Python library for interacting with ClearBooks.
 
 ## TODO
 
-- [x] time sheets
+- [x] Timesheets
 - [x] Purchase Orders
-- [ ] Bills - paid bills on a project
+- [x] Bills - paid bills on a project
 - [ ] Invoices – what we have invoiced

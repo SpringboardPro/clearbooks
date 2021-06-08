@@ -10,7 +10,7 @@ from typing import List
 import pandas as pd
 import requests
 
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 __all__ = ['Session', 'get_purchase_orders', 'get_timesheets']
 
 TIMEOUT = 20  # seconds
@@ -27,18 +27,15 @@ REPORT_URL = CB_DOMAIN + 'springboardproltd/accounting/reports/export-csv/'
 TIMESHEET_URL = CB_DOMAIN + 'springboardproltd/accounting/timetracking/view/'
 HOMEPAGE = CB_DOMAIN + 'springboardproltd/accounting/home/dashboard'
 
-PO_COL_NAMES = ['clearbooks_id',
-                'prefix',
-                'accounting_date',
-                'reference',
-                'invoice_date',
-                'description',
-                'company_name',
-                'net',
-                'vat',
-                'gross',
-                'status',
-                'project_name']
+BILL_COL_NAMES = ['clearbooks_id', 'prefix', 'number', 'accounting_date', 'reference',
+                  'po_reference', 'transaction_id', 'invoice_date', 'invoice_due',
+                  'description', 'company_name', 'net', 'vat', 'gross', 'status',
+                  'project_name', 'outstanding', 'mc_net', 'mc_vat', 'mc_gross',
+                  'currency_id', 'formatted_invoice_number', 'amount_credited',
+                  'currency_code']
+
+PO_COL_NAMES = ['clearbooks_id', 'prefix', 'accounting_date', 'reference', 'invoice_date',
+                'description', 'company_name', 'net', 'vat', 'gross', 'status', 'project_name']
 
 
 class Session:
@@ -86,6 +83,33 @@ class Session:
         return self._session.post(*args, **kwargs)
 
 
+def get_bills(from_: date = CB_START_DATE,
+              to: date = None) -> pd.DataFrame:
+    """Return bills as pandas.DataFrame."""
+    logger = logging.getLogger('clearbooks.get_bills')
+
+    if to is None:
+        to = date.today()
+
+    _check_date_order(from_, to)
+
+    params = {'report_type': 'PURCHASES'}
+    params['q_from'] = from_.strftime(DATE_FORMAT)
+    params['q_to'] = to.strftime(DATE_FORMAT)
+
+    with Session() as session:
+        response = session.post(REPORT_URL, params, timeout=TIMEOUT)
+
+    response.raise_for_status() 
+
+    if response.text:
+        return pd.read_csv(StringIO(response.text))
+
+    else:
+        logger.info(f'No bills found between {from_} and {to}')
+        return pd.DataFrame(columns=BILL_COL_NAMES)
+
+
 def get_purchase_orders(from_: date = CB_START_DATE,
                         to: date = None) -> pd.DataFrame:
     """Return Purchase Orders as pandas.DataFrame."""
@@ -126,7 +150,7 @@ def get_timesheets(from_: date = CB_START_DATE,
     """
     if to is None:
         to = date.today()
-    
+
     _check_date_order(from_, to)
 
     dataframes: List[pd.DataFrame] = []
@@ -203,7 +227,7 @@ def _check_date_order(from_, to) -> bool:
 
     Returns: True if from_ is not later than to
 
-    Raises: Value error if from_is later than to
+    Raises: Value error if from_ is later than to
     """
     if from_ > to:
         raise ValueError(f'"to" ({to}) cannot be before "from" ({from_})')
