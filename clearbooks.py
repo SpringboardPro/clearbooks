@@ -92,82 +92,19 @@ class Session:
 def get_bills(from_: date = CB_START_DATE,
               to: date = None) -> pd.DataFrame:
     """Return bills as pandas.DataFrame."""
-    logger = logging.getLogger('clearbooks.get_bills')
-
-    if to is None:
-        to = date.today()
-
-    _check_date_order(from_, to)
-
-    params = {'report_type': 'PURCHASES'}
-    params['q_from'] = from_.strftime(DATE_FORMAT)
-    params['q_to'] = to.strftime(DATE_FORMAT)
-
-    with Session() as session:
-        response = session.post(REPORT_URL, params, timeout=TIMEOUT)
-
-    response.raise_for_status()
-
-    if response.text:
-        return pd.read_csv(StringIO(response.text), parse_dates=[3, 7, 8])
-
-    else:
-        logger.info(f'No bills found between {from_} and {to}')
-        return pd.DataFrame(columns=BILL_COL_NAMES)
+    return _get_export('PURCHASES', from_, to, parse_dates=[3, 7, 8])
 
 
 def get_invoices(from_: date = CB_START_DATE,
                  to: date = None) -> pd.DataFrame:
     """Return invoices as pandas.DataFrame."""
-    logger = logging.getLogger('clearbooks.get_invoices')
-
-    if to is None:
-        to = date.today()
-
-    _check_date_order(from_, to)
-
-    params = {'report_type': 'SALES'}
-    params['q_from'] = from_.strftime(DATE_FORMAT)
-    params['q_to'] = to.strftime(DATE_FORMAT)
-
-    with Session() as session:
-        response = session.post(REPORT_URL, params, timeout=TIMEOUT)
-
-    response.raise_for_status()
-
-    if response.text:
-        return pd.read_csv(StringIO(response.text), parse_dates=[2, 5, 6])
-
-    else:
-        logger.info(f'No invoices found between {from_} and {to}')
-        return pd.DataFrame(columns=INVOICE_COL_NAMES)
+    return _get_export('SALES', from_, to, parse_dates=[2, 5, 6])
 
 
 def get_purchase_orders(from_: date = CB_START_DATE,
                         to: date = None) -> pd.DataFrame:
     """Return Purchase Orders as pandas.DataFrame."""
-    logger = logging.getLogger('clearbooks.get_purchase_orders')
-
-    if to is None:
-        to = date.today()
-
-    _check_date_order(from_, to)
-
-    params = {'report_type': 'POS'}
-    params['q_from'] = from_.strftime(DATE_FORMAT)
-    params['q_to'] = to.strftime(DATE_FORMAT)
-
-    with Session() as session:
-        response = session.post(REPORT_URL, params, timeout=TIMEOUT)
-
-    response.raise_for_status()
-
-    if response.text:
-        return pd.read_csv(StringIO(response.text), parse_dates=[2, 4])
-
-    else:
-        logger.info(f'No POs found between {from_} and {to}')
-        return pd.DataFrame(columns=PO_COL_NAMES)
+    return _get_export('POS', from_, to, parse_dates=[2, 4])
 
 
 def get_timesheets(from_: date = CB_START_DATE,
@@ -266,3 +203,46 @@ def _check_date_order(from_, to) -> bool:
         raise ValueError(f'"to" ({to}) cannot be before "from" ({from_})')
 
     return True
+
+
+def _get_export(export_type, from_: date, to: date, parse_dates=None) -> pd.DataFrame:
+    """Get export from ClearBooks.
+
+    Returns: pandas.DataFrame of data exported from ClearBooks.  Run example_*.py to see the format
+
+    Raises: ValueError for unrecognised export_type, or from_ later than to
+    """
+    logger = logging.getLogger(f'clearbooks.get_export({export_type})')
+
+    if to is None:
+        to = date.today()
+
+    if parse_dates is None:
+        parse_dates = []
+
+    col_mapping = {
+            'POS': PO_COL_NAMES,
+            'SALES': INVOICE_COL_NAMES,
+            'PURCHASES': BILL_COL_NAMES,
+    }
+
+    if export_type not in col_mapping:
+        raise ValueError(f'Export type {export_type} must be one of {list(col_mapping.keys())}')
+
+    _check_date_order(from_, to)
+
+    params = {'report_type': export_type}
+    params['q_from'] = from_.strftime(DATE_FORMAT)
+    params['q_to'] = to.strftime(DATE_FORMAT)
+
+    with Session() as session:
+        response = session.post(REPORT_URL, params, timeout=TIMEOUT)
+
+    response.raise_for_status()
+
+    if response.text:
+        return pd.read_csv(StringIO(response.text), parse_dates=parse_dates)
+
+    else:
+        logger.info(f'No {export_type} found between {from_} and {to}')
+        return pd.DataFrame(columns=col_mapping[export_type])
