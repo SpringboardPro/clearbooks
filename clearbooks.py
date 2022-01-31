@@ -5,19 +5,23 @@ from io import StringIO
 import logging
 import os
 import sys
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import requests
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 __all__ = ['Session', 'get_bills', 'get_invoices', 'get_purchase_orders', 'get_timesheets']
 
 TIMEOUT = 20  # seconds
 DATE_FORMAT = '%d/%m/%Y'
 """Date format DD/MM/YYYY accepted by ClearBooks URLs"""
 
-HOURS_PER_DAY = 8  # hours per working day
+HOURS_PER_DAY = 8
+"""Hours per working day.  WARNING - we cannot be sure how many hours a user
+will count as one day.  For example, a user might enter 1 day into a timesheet
+to mean 7.5 hours, or 8 hours, or 12 hours, or 24 hours or some other number."""
+
 CB_START_DATE = date(2014, 1, 1)
 ONE_YEAR = timedelta(days=365)
 CB_DOMAIN = 'https://secure.clearbooks.co.uk/'
@@ -110,14 +114,27 @@ def get_purchase_orders(from_: date = CB_START_DATE,
 def get_timesheets(from_: date = CB_START_DATE,
                    to: date = None,
                    step: timedelta = ONE_YEAR) -> pd.DataFrame:
-    """Download timesheets in chunks because there is a bug in ClearBooks
-    where requests for large amounts of data get no respone.
+    """Return DataFrame of timesheet entries.  Columns are:
 
-    Perhaps the ClearBooks server times-out internally.
-    A technique that seems to work is to get one year at a time.
+    Datetime        datetime64[ns]
+    Employee                object
+    Client                  object
+    Project                 object
+    Task                    object
+    Comment                 object
+    Billed                  object
+    Days                     int64
+    Hours                    int64
+    Minutes                  int64
+    Hours_Booked           float64
+    Quarter          period[Q-MAR]
 
-    Add columns for Quarter and Working Days (sum of Days, Hours, Minutes).
+    Download timesheets in chunks because there is a bug in ClearBooks
+    where requests for large amounts of data get no respone. Perhaps the
+    ClearBooks server times-out internally.
     """
+    logger = logging.getLogger('clearbooks.get_timesheets')
+
     if to is None:
         to = date.today()
 
@@ -134,23 +151,26 @@ def get_timesheets(from_: date = CB_START_DATE,
 
             from_ = from_ + step + timedelta(days=1)
 
-    timesheets = pd.concat(dataframes)
+    times = pd.concat(dataframes)
 
     # Change leading underscores to periods because matplotlib does not
     # plot variables with leading underscores
-    timesheets.replace('^_', '.', regex=True, inplace=True)
+    times.replace('^_', '.', regex=True, inplace=True)
 
-    # Add column for Working Days booked
-    timesheets['Working_Days'] = timesheets['Days'] + \
-        timesheets['Hours'] / HOURS_PER_DAY + \
-        timesheets['Minutes'] / (HOURS_PER_DAY * 60)
+    # Warn if user has booked days
+    days_booked = times[times['Days'] > 0]
+    if not days_booked.empty:
+        logger.warning(f'clearbooks.py assumes {HOURS_PER_DAY} hours per day')
+
+    # Add column for total hours booked
+    times['Hours_Booked'] = _get_hours(times)
 
     # Categorise each entry into its quarter.
     # Note that the quarter is financial (Q1 is Apr - Jun inclusive)
     # The year is the financial year ENDING so 2016Q1 means Apr - Jun 2015
-    timesheets['Quarter'] = pd.PeriodIndex(timesheets['Datetime'], freq='Q-MAR')
+    times['Quarter'] = pd.PeriodIndex(times['Datetime'], freq='Q-MAR')
 
-    return timesheets
+    return times
 
 
 def _get_timesheet(session: requests.Session,
@@ -192,6 +212,15 @@ def _get_timesheet(session: requests.Session,
         return pd.DataFrame()
 
 
+def _get_hours(times: pd.DataFrame) -> pd.Series:
+    """Return single column Dataframe of total hours worked for each row
+    of times.
+
+    WARNING: the HOURS_PER_DAY is subjective and could change.
+    """
+    return (times['Days'] * HOURS_PER_DAY) + times['Hours'] + (times['Minutes'] / 60)
+
+
 def _check_date_order(from_, to) -> bool:
     """Check that from_ is not later than to.
 
@@ -205,7 +234,10 @@ def _check_date_order(from_, to) -> bool:
     return True
 
 
-def _get_export(export_type, from_: date, to: date, parse_dates=None) -> pd.DataFrame:
+def _get_export(export_type,
+                from_: date,
+                to: Optional[date],
+                parse_dates=Optional[List[int]]) -> pd.DataFrame:
     """Get export from ClearBooks.
 
     Returns: pandas.DataFrame of data exported from ClearBooks.  Run example_*.py to see the format

@@ -1,9 +1,11 @@
 """Example showing how to get timesheets from ClearBooks."""
 
 from datetime import date, timedelta
+import logging
 
 import clearbooks
 
+logging.basicConfig(level=logging.DEBUG)
 
 one_year_ago = date.today() - timedelta(days=365)
 
@@ -18,4 +20,4 @@ print(times.dtypes)
 print()
 
 # Print the total amount of time booked by employee
-print(times.groupby('Employee')['Working_Days'].sum().sort_values())
+print(times.groupby('Employee')['Hours_Booked'].sum().sort_values())

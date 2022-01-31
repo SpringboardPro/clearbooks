@@ -23,7 +23,7 @@ ClearBooks administrator if you have any problems.
 
 3. Either:
    1. Copy `clearbooks.py` to your working directory, OR
-   2. Install from the repository using `pip install https://github.com/blokeley/clearbooks` (untested) OR
+   2. Install from the repository using `pip install https://github.com/blokeley/clearbooks.git` OR
    3. Clone the repository using `git` then install from the local repo using `pip`.
 
 ## Use
@@ -37,11 +37,4 @@ ClearBooks administrator if you have any problems.
 ## Development
 
 * Use mypy and flake8 to check code quality.
-* Use Python 3.6+
-
-## TODO
-
-- [x] Timesheets
-- [x] Purchase Orders
-- [x] Bills - paid bills on a project
-- [x] Invoices – what we have invoiced
+* Use Python 3.7+

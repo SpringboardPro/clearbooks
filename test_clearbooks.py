@@ -37,7 +37,7 @@ class TestGetInvoices(unittest.TestCase):
         from_ = date(2021, 4, 1)
         to = date(2021, 4, 30)
         bills = clearbooks.get_invoices(from_, to)
-        self.assertEqual(bills.shape, (15, 22))
+        self.assertEqual(bills.shape, (15, 23))
 
     @unittest.skipIf(SKIP_SLOW_TESTS, 'Slow test')
     def test_no_invoices(self):
@@ -87,6 +87,20 @@ class TestCheckDateOrder(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             clearbooks._check_date_order(from_, self.to)
+
+
+class Test_GetHours(unittest.TestCase):
+
+    def test(self) -> None:
+        data = dict(Days=[0, 1, 2],
+                    Hours=[5, 6, 7],
+                    Minutes=[15, 30, 45])
+
+        hours = clearbooks._get_hours(pd.DataFrame(data))
+
+        expected = pd.Series([5.25, 14.5, 23.75])
+
+        pd.testing.assert_series_equal(hours, expected)
 
 
 if __name__ == '__main__':
