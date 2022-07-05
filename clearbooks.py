@@ -17,7 +17,10 @@ TIMEOUT = 20  # seconds
 DATE_FORMAT = '%d/%m/%Y'
 """Date format DD/MM/YYYY accepted by ClearBooks URLs"""
 
-HOURS_PER_DAY = 8
+HOURS_PER_DAY_DICT = {
+    date(2014, 1, 1): 8,
+    date(2022, 4, 1): 7.5
+    }
 """Hours per working day.  WARNING - we cannot be sure how many hours a user
 will count as one day.  For example, a user might enter 1 day into a timesheet
 to mean 7.5 hours, or 8 hours, or 12 hours, or 24 hours or some other number."""
@@ -160,7 +163,7 @@ def get_timesheets(from_: date = CB_START_DATE,
     # Warn if user has booked days
     days_booked = times[times['Days'] > 0]
     if not days_booked.empty:
-        logger.warning(f'clearbooks.py assumes {HOURS_PER_DAY} hours per day')
+        logger.warning(f'clearbooks.py assumes to following hours per day: {HOURS_PER_DAY_DICT}')
 
     # Add column for total hours booked
     times['Hours_Booked'] = _get_hours(times)
@@ -216,9 +219,25 @@ def _get_hours(times: pd.DataFrame) -> pd.Series:
     """Return single column Dataframe of total hours worked for each row
     of times.
 
-    WARNING: the HOURS_PER_DAY is subjective and could change.
+    WARNING: the HOURS_PER_DAY_DICT is subjective and could change.
+    Ensure HOURS_PER_DAY_DICT is up to date!
     """
-    return (times['Days'] * HOURS_PER_DAY) + times['Hours'] + (times['Minutes'] / 60)
+    return (times['Days'] * times['Datetime'].map(_get_hours_per_day)) + times['Hours'] + (times['Minutes'] / 60)
+
+
+def _get_hours_per_day(dt: pd.Timestamp) -> int:
+    """Map function to get hours per day on a given date"""
+    latest = None
+
+    # Compare datetime of each entry to start of new hours per day
+    for date in HOURS_PER_DAY_DICT:
+        if pd.Timestamp(date) <= dt:
+            latest = date
+    
+    if latest is None:
+        raise(ValueError("Date not in daterange"))
+
+    return HOURS_PER_DAY_DICT[latest]
 
 
 def _check_date_order(from_, to) -> bool:
