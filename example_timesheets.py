@@ -12,7 +12,7 @@ one_year_ago = date.today() - timedelta(days=365)
 times = clearbooks.get_timesheets(from_=one_year_ago)
 
 # Print the top few rows of timesheet data
-print(times.head())
+print(times.loc[times['Days'] != 0])
 print()
 
 # Print the data types

@@ -92,13 +92,14 @@ class TestCheckDateOrder(unittest.TestCase):
 class Test_GetHours(unittest.TestCase):
 
     def test(self) -> None:
-        data = dict(Days=[0, 1, 2],
+        data = dict(Datetime=[pd.Timestamp(date(2015,1,1)), pd.Timestamp(date(2015,1,1)), pd.Timestamp(date(2022,5,5))],
+                    Days=[0, 1, 2],
                     Hours=[5, 6, 7],
                     Minutes=[15, 30, 45])
 
         hours = clearbooks._get_hours(pd.DataFrame(data))
 
-        expected = pd.Series([5.25, 14.5, 23.75])
+        expected = pd.Series([5.25, 14.5, 22.75])
 
         pd.testing.assert_series_equal(hours, expected)
 
