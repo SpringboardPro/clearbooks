@@ -5,11 +5,21 @@ from datetime import date, timedelta
 import clearbooks
 
 
-from_ = date.today() - timedelta(weeks=4)
-bills = clearbooks.get_bills(from_)
+from_ = date.today() - timedelta(weeks=52)
+bills = clearbooks.get_transactions(from_)
+
+bills = bills.loc[
+    bills.payment_id.isna()].loc[
+        ~bills.account_name.isin([
+                'VAT control', 
+                'VAT cash control', 
+                'Trade creditors', 
+                'Trade debtors'
+        ])
+    ].copy()
 
 # Print the top few rows of the DataFrame
-print(bills.head())
+print(bills.amount[bills.entity_name == 'RS Components'].sum())
 
 # Calculate the total VAT
 print('Total VAT', bills['vat'].sum())

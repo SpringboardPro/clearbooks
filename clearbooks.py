@@ -10,7 +10,7 @@ from typing import List, Optional
 import pandas as pd
 import requests
 
-__version__ = '0.2.0'
+__version__ = '0.2.2'
 __all__ = ['Session', 'get_bills', 'get_invoices', 'get_purchase_orders', 'get_timesheets']
 
 TIMEOUT = 20  # seconds
@@ -40,6 +40,12 @@ BILL_COL_NAMES = ['clearbooks_id', 'prefix', 'number', 'accounting_date', 'refer
                   'project_name', 'outstanding', 'mc_net', 'mc_vat', 'mc_gross',
                   'currency_id', 'formatted_invoice_number', 'amount_credited',
                   'currency_code']
+
+TRANS_COL_NAMES = ['id', 'description', 'entity_id', 'accounting_date', 'vat_return_id',
+                  'ptype', 'account', 'amount', 'payment_id',
+                  'bank_date', 'purchase_id', 'sales_id', 'entity_name', 'account_name', 'account_code',
+                  'vat_return_name', 'mc_amount', 'fxrate', 'transaction_project', 'project',
+                  'invoice_line_description']
 
 INVOICE_COL_NAMES = ['invoice_num', 'prefix', 'accounting_date', 'reference',
                      'transaction_id', 'invoice_date', 'invoice_due', 'description',
@@ -100,6 +106,12 @@ def get_bills(from_: date = CB_START_DATE,
               to: date = None) -> pd.DataFrame:
     """Return bills as pandas.DataFrame."""
     return _get_export('PURCHASES', from_, to, parse_dates=[3, 7, 8])
+
+
+def get_transactions(from_: date = CB_START_DATE,
+                     to: date = None) -> pd.DataFrame:
+    """Return bills as pandas.DataFrame."""
+    return _get_export('TRANSACTIONS', from_, to, parse_dates=[3, 9])
 
 
 def get_invoices(from_: date = CB_START_DATE,
@@ -222,7 +234,7 @@ def _get_hours(times: pd.DataFrame) -> pd.Series:
     WARNING: the HOURS_PER_DAY_DICT is subjective and could change.
     Ensure HOURS_PER_DAY_DICT is up to date!
     """
-    return (times['Days'] * times['Datetime'].map(_get_hours_per_day)) + times['Hours'] + (times['Minutes'] / 60)
+    return times['Days'] * 24 + times['Hours'] + (times['Minutes'] / 60)
 
 
 def _get_hours_per_day(dt: pd.Timestamp) -> int:
@@ -275,6 +287,7 @@ def _get_export(export_type,
             'POS': PO_COL_NAMES,
             'SALES': INVOICE_COL_NAMES,
             'PURCHASES': BILL_COL_NAMES,
+            'TRANSACTIONS': TRANS_COL_NAMES,
     }
 
     if export_type not in col_mapping:
