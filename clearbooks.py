@@ -10,7 +10,7 @@ from typing import List, Optional
 import pandas as pd
 import requests
 
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 __all__ = ['Session', 'get_bills', 'get_invoices', 'get_purchase_orders', 'get_timesheets']
 
 TIMEOUT = 120  # seconds
