@@ -13,17 +13,14 @@ import requests
 __version__ = '0.2.2'
 __all__ = ['Session', 'get_bills', 'get_invoices', 'get_purchase_orders', 'get_timesheets']
 
-TIMEOUT = 20  # seconds
+TIMEOUT = 120  # seconds
 DATE_FORMAT = '%d/%m/%Y'
 """Date format DD/MM/YYYY accepted by ClearBooks URLs"""
 
-HOURS_PER_DAY_DICT = {
-    date(2014, 1, 1): 8,
-    date(2022, 4, 1): 7.5
-    }
-"""Hours per working day.  WARNING - we cannot be sure how many hours a user
-will count as one day.  For example, a user might enter 1 day into a timesheet
-to mean 7.5 hours, or 8 hours, or 12 hours, or 24 hours or some other number."""
+HOURS_PER_DAY = 24
+"""Hours per day.  Clearbooks will convert any value over 24hrs into 1 day.
+Users must only use the 1day functionality when booking timesheets if they intend
+to book 24 hours."""
 
 CB_START_DATE = date(2014, 1, 1)
 ONE_YEAR = timedelta(days=365)
@@ -175,7 +172,7 @@ def get_timesheets(from_: date = CB_START_DATE,
     # Warn if user has booked days
     days_booked = times[times['Days'] > 0]
     if not days_booked.empty:
-        logger.warning(f'clearbooks.py assumes to following hours per day: {HOURS_PER_DAY_DICT}')
+        logger.warning(f'clearbooks.py assumes to following hours per day: {HOURS_PER_DAY}')
 
     # Add column for total hours booked
     times['Hours_Booked'] = _get_hours(times)
@@ -235,21 +232,6 @@ def _get_hours(times: pd.DataFrame) -> pd.Series:
     Ensure HOURS_PER_DAY_DICT is up to date!
     """
     return times['Days'] * 24 + times['Hours'] + (times['Minutes'] / 60)
-
-
-def _get_hours_per_day(dt: pd.Timestamp) -> int:
-    """Map function to get hours per day on a given date"""
-    latest = None
-
-    # Compare datetime of each entry to start of new hours per day
-    for date in HOURS_PER_DAY_DICT:
-        if pd.Timestamp(date) <= dt:
-            latest = date
-    
-    if latest is None:
-        raise(ValueError("Date not in daterange"))
-
-    return HOURS_PER_DAY_DICT[latest]
 
 
 def _check_date_order(from_, to) -> bool:
