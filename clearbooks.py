@@ -12,7 +12,10 @@ import pandas as pd
 import requests
 
 __version__ = '0.2.3'
-__all__ = ['Session', 'get_bills', 'get_invoices', 'get_purchase_orders', 'get_timesheets']
+__all__ = [
+    'Session', 'get_bills', 'get_invoices',
+    'get_purchase_orders', 'get_timesheets'
+]
 
 TIMEOUT = 120  # seconds
 DATE_FORMAT = '%d/%m/%Y'
@@ -20,8 +23,8 @@ DATE_FORMAT = '%d/%m/%Y'
 
 HOURS_PER_DAY = 24
 """Hours per day.  Clearbooks will convert any value over 24hrs into 1 day.
-Users must only use the 1day functionality when booking timesheets if they intend
-to book 24 hours."""
+Users must only use the 1day functionality when booking timesheets if they
+intend to book 24 hours."""
 
 CB_START_DATE = date(2014, 1, 1)
 ONE_YEAR = timedelta(days=365)
@@ -32,27 +35,38 @@ REPORT_URL = CB_DOMAIN + 'springboardproltd/accounting/reports/export-csv/'
 TIMESHEET_URL = CB_DOMAIN + 'springboardproltd/accounting/timetracking/view/'
 HOMEPAGE = CB_DOMAIN + 'springboardproltd/accounting/home/dashboard'
 
-BILL_COL_NAMES = ['clearbooks_id', 'prefix', 'number', 'accounting_date', 'reference',
-                  'po_reference', 'transaction_id', 'invoice_date', 'invoice_due',
-                  'description', 'company_name', 'net', 'vat', 'gross', 'status',
-                  'project_name', 'outstanding', 'mc_net', 'mc_vat', 'mc_gross',
-                  'currency_id', 'formatted_invoice_number', 'amount_credited',
-                  'currency_code']
+BILL_COL_NAMES = [
+    'clearbooks_id', 'prefix', 'number', 'accounting_date', 'reference',
+    'po_reference', 'transaction_id', 'invoice_date', 'invoice_due',
+    'description', 'company_name', 'net', 'vat', 'gross', 'status',
+    'project_name', 'outstanding', 'mc_net', 'mc_vat', 'mc_gross',
+    'currency_id', 'formatted_invoice_number', 'amount_credited',
+    'currency_code'
+]
 
-TRANS_COL_NAMES = ['id', 'description', 'entity_id', 'accounting_date', 'vat_return_id',
-                  'ptype', 'account', 'amount', 'payment_id',
-                  'bank_date', 'purchase_id', 'sales_id', 'entity_name', 'account_name', 'account_code',
-                  'vat_return_name', 'mc_amount', 'fxrate', 'transaction_project', 'project',
-                  'invoice_line_description']
+TRANS_COL_NAMES = [
+    'id', 'description', 'entity_id', 'accounting_date', 'vat_return_id',
+    'ptype', 'account', 'amount', 'payment_id',
+    'bank_date', 'purchase_id', 'sales_id', 'entity_name', 'account_name',
+    'account_code', 'vat_return_name', 'mc_amount', 'fxrate',
+    'transaction_project', 'project', 'invoice_line_description'
+]
 
-INVOICE_COL_NAMES = ['invoice_num', 'prefix', 'accounting_date', 'reference',
-                     'transaction_id', 'invoice_date', 'invoice_due', 'description',
-                     'company_name', 'net', 'vat', 'gross', 'status', 'project_name',
-                     'outstanding', 'mc_net', 'mc_vat', 'mc_gross', 'currency_id',
-                     'formatted_invoice_number', 'amount_credited', 'currency_code']
+INVOICE_COL_NAMES = [
+    'invoice_num', 'prefix', 'accounting_date', 'reference',
+    'transaction_id', 'invoice_date', 'invoice_due', 'description',
+    'company_name', 'net', 'vat', 'gross', 'status', 'project_name',
+    'outstanding', 'mc_net', 'mc_vat', 'mc_gross', 'currency_id',
+    'formatted_invoice_number', 'amount_credited', 'currency_code'
+]
 
-PO_COL_NAMES = ['clearbooks_id', 'prefix', 'accounting_date', 'reference', 'invoice_date',
-                'description', 'company_name', 'net', 'vat', 'gross', 'status', 'project_name']
+PO_COL_NAMES = [
+    'clearbooks_id', 'prefix',
+    'accounting_date', 'reference',
+    'invoice_date', 'description',
+    'company_name', 'net', 'vat',
+    'gross', 'status', 'project_name'
+]
 
 
 class Session:
@@ -67,7 +81,10 @@ class Session:
             post_data['password'] = os.environ['CB_PASSWORD']
 
         except KeyError as ex:
-            logger.error(f'Cannot log in. Please set the {ex} environment variable')
+            logger.error(
+                f'Cannot log in. Please set the {ex} environment variable'
+            )
+
             raise
 
         # Start a HTTP session
@@ -75,7 +92,12 @@ class Session:
             self._session = requests.Session().__enter__()
 
             # Log in to ClearBooks
-            response = self._session.post(LOGIN_FORM, data=post_data, timeout=TIMEOUT)
+            response = self._session.post(
+                LOGIN_FORM,
+                data=post_data,
+                timeout=TIMEOUT
+            )
+
             response.raise_for_status()
 
             if response.url == LOGIN_URL:
@@ -178,7 +200,10 @@ def get_timesheets(REQUIRED_PHANTOM: Path = None,
     # Warn if user has booked days
     days_booked = times[times['Days'] > 0]
     if not days_booked.empty:
-        logger.warning(f'clearbooks.py assumes to following hours per day: {HOURS_PER_DAY}')
+        logger.warning(
+            f'''clearbooks.py assumes to following hours per day: {
+                HOURS_PER_DAY}'''
+        )
 
     # Add column for total hours booked
     times['Hours_Booked'] = _get_hours(times)
@@ -259,7 +284,8 @@ def _get_export(export_type,
                 parse_dates=Optional[List[int]]) -> pd.DataFrame:
     """Get export from ClearBooks.
 
-    Returns: pandas.DataFrame of data exported from ClearBooks.  Run example_*.py to see the format
+    Returns: pandas.DataFrame of data exported from ClearBooks.
+    Run example_*.py to see the format
 
     Raises: ValueError for unrecognised export_type, or from_ later than to
     """
@@ -279,7 +305,10 @@ def _get_export(export_type,
     }
 
     if export_type not in col_mapping:
-        raise ValueError(f'Export type {export_type} must be one of {list(col_mapping.keys())}')
+        raise ValueError(
+            f'''Export type {export_type} must be one of {
+                list(col_mapping.keys())}'''
+        )
 
     _check_date_order(from_, to)
 
