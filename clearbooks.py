@@ -322,8 +322,13 @@ def _get_export(export_type,
     response.raise_for_status()
 
     if response.text:
-        return pd.read_csv(StringIO(response.text), parse_dates=parse_dates)
+        return pd.read_csv(
+            StringIO(response.text),
+            parse_dates=parse_dates
+        )
 
     else:
         logger.info(f'No {export_type} found between {from_} and {to}')
-        return pd.DataFrame(columns=col_mapping[export_type])
+        return pd.DataFrame(
+            columns=col_mapping[export_type]
+        )
