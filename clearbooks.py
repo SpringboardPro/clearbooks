@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from io import StringIO
 import logging
 import os
+from pathlib import Path
 import sys
 from typing import List, Optional
 
@@ -99,31 +100,36 @@ class Session:
         return self._session.post(*args, **kwargs)
 
 
-def get_bills(from_: date = CB_START_DATE,
+def get_bills(REQUIRED_PHANTOM: Path = None,
+              from_: date = CB_START_DATE,
               to: date = None) -> pd.DataFrame:
     """Return bills as pandas.DataFrame."""
     return _get_export('PURCHASES', from_, to, parse_dates=[3, 7, 8])
 
 
-def get_transactions(from_: date = CB_START_DATE,
+def get_transactions(REQUIRED_PHANTOM: Path = None,
+                     from_: date = CB_START_DATE,
                      to: date = None) -> pd.DataFrame:
     """Return bills as pandas.DataFrame."""
     return _get_export('TRANSACTIONS', from_, to, parse_dates=[3, 9])
 
 
-def get_invoices(from_: date = CB_START_DATE,
+def get_invoices(REQUIRED_PHANTOM: Path = None,
+                 from_: date = CB_START_DATE,
                  to: date = None) -> pd.DataFrame:
     """Return invoices as pandas.DataFrame."""
     return _get_export('SALES', from_, to, parse_dates=[2, 5, 6])
 
 
-def get_purchase_orders(from_: date = CB_START_DATE,
+def get_purchase_orders(REQUIRED_PHANTOM: Path = None,
+                        from_: date = CB_START_DATE,
                         to: date = None) -> pd.DataFrame:
     """Return Purchase Orders as pandas.DataFrame."""
     return _get_export('POS', from_, to, parse_dates=[2, 4])
 
 
-def get_timesheets(from_: date = CB_START_DATE,
+def get_timesheets(REQUIRED_PHANTOM: Path = None,
+                   from_: date = CB_START_DATE,
                    to: date = None,
                    step: timedelta = ONE_YEAR) -> pd.DataFrame:
     """Return DataFrame of timesheet entries.  Columns are:
