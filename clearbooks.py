@@ -322,7 +322,7 @@ def _get_export(export_type,
     response.raise_for_status()
 
     if response.text:
-        print(response)
+        print(response.url)
         #print(response.text)
         #print(params)
         #test_csv = pd.read_csv(StringIO(response.text))
