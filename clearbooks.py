@@ -322,8 +322,9 @@ def _get_export(export_type,
     response.raise_for_status()
 
     if response.text:
-        test_csv = pd.read_csv(StringIO(response.text))
-        test_csv.to_csv(index=False)
+        print(response.text)
+        #test_csv = pd.read_csv(StringIO(response.text))
+        #test_csv.to_csv(index=False)
         return pd.read_csv(
             StringIO(response.text),
             parse_dates=parse_dates
