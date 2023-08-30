@@ -316,8 +316,10 @@ def _get_export(export_type,
     params['q_from'] = from_.strftime(DATE_FORMAT)
     params['q_to'] = to.strftime(DATE_FORMAT)
 
+    headers = {'User-Agent': 'your-user-agent-string'}
+
     with Session() as session:
-        response = session.post(REPORT_URL, params, timeout=TIMEOUT)
+        response = session.post(REPORT_URL, params, timeout=TIMEOUT, headers = headers)
 
     response.raise_for_status()
 
