@@ -31,7 +31,7 @@ ONE_YEAR = timedelta(days=365)
 CB_DOMAIN = 'https://secure.clearbooks.co.uk/'
 LOGIN_URL = CB_DOMAIN + 'account/action/login/'
 LOGIN_FORM = CB_DOMAIN + 'account/action/login/cb'
-REPORT_URL = CB_DOMAIN + 'springboardproltd/accounting/reports/export/'
+REPORT_URL = CB_DOMAIN + 'springboardproltd/accounting/reports/export'
 TIMESHEET_URL = CB_DOMAIN + 'springboardproltd/accounting/timetracking/view/'
 HOMEPAGE = CB_DOMAIN + 'springboardproltd/accounting/home/dashboard'
 
@@ -322,7 +322,7 @@ def _get_export(export_type,
     response.raise_for_status()
 
     if response.text:
-        print(REPORT_URL)
+        print(response)
         #print(response.text)
         #print(params)
         #test_csv = pd.read_csv(StringIO(response.text))
